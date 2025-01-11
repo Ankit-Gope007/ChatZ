@@ -1,4 +1,4 @@
-import React, { useState, useEffect,useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import axios from 'axios'
 import { getProfileRoute } from '@/apiRoutes';
 import { Input } from "@/components/ui/input"
@@ -10,23 +10,78 @@ import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { FaTrash, FaPlus } from 'react-icons/fa'
 
+
 const Profile = () => {
     const [email, setEmail] = useState("")
     const [firstName, setFirstName] = useState("")
     const [lastName, setLastName] = useState("")
     const [image, setImage] = useState(null)
+    const [instantImage,setInstantImage] = useState(null)
     const [hovered, setHovered] = useState(false)
     const [selectedColor, setSelectedColor] = useState(0)
+    const [loading, setLoading] = useState(false)
     const navigate = useNavigate()
     const fileInputRef = useRef(null)
     useEffect(() => {
         getProfile()
     }, [])
 
+    const handleImageChange = (e) => {
+
+        
+        const imageUpload = e.target.files[0]
+
+        setImage(imageUpload)
+        // setInstantImage(image)
+        // console.log("image:", imageUpload)
+
+
+
+        const file = e.target.files[0]
+        // console.log(file)
+        if (file) {
+            const reader = new FileReader()
+            reader.onload = () => {
+                // console.log(reader.result)
+                setInstantImage(reader.result)
+            }
+            reader.readAsDataURL(file)
+        }
+
+
+    }
+
+    const handleDeleteImage = () => {
+        setImage(null)
+    }
+
+    const handleInputFileClick = () => {
+        fileInputRef.current.click()
+    }
+
     const getProfile = async () => {
         try {
+           
             const response = await axios.get(getProfileRoute, { withCredentials: true })
-            setEmail(response.data.data.email)
+            const value = response.data.data
+            // console.log("Value:", value)
+
+
+            setEmail(value.email)
+            if (value.firstName && value.lastName && value.color) {
+                setFirstName(value.firstName)
+                setLastName(value.lastName)
+                setSelectedColor(value.color)
+                // console.log("Value.image", value.image)
+                if (value.image) {
+                    setImage(value.image)
+                }
+            }
+            else{
+                setFirstName("")
+                setLastName("")
+                setSelectedColor(0)
+            }
 
 
         } catch (error) {
@@ -37,18 +92,47 @@ const Profile = () => {
 
     const handleUpdateProfile = async () => {
         try {
-            const response = await axios.post(updateProfileRoute, { firstName, lastName, color: selectedColor }, { withCredentials: true })
+            setLoading(true)
+            const response = await axios.post(updateProfileRoute, { firstName, lastName, color: selectedColor, image },
+
+                {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    }, withCredentials: true
+                })
+            console.log("Response:", response.data.data)
             if (response.status === 200) {
                 toast.success("Profile updated successfully")
                 navigate('/chats')
             }
         } catch (error) {
             console.log(error)
+        } finally {
+            setLoading(false)
         }
     }
 
+    const divImage = instantImage ? instantImage : image
+
     return (
         <>
+        {
+            loading && 
+            <div className="w-screen h-screen center overflow-hidden  bg-[url('https://i.gifer.com/origin/85/856de846e59271089eca26c4260c9bdb_w200.webp')] ">
+                <div className="bg-white w-[80%] xl:w-[70%] h-[70%] rounded-xl center flex-col  shadow-xl xl:gap-[150px]">
+                    <div className=" overflow-hidden bg-contain bg-[url('https://i.pinimg.com/originals/6e/34/f0/6e34f0027ae54a25873e2e07cf0aafb2.gif')] h-[300px] w-[300px]">
+                    </div>
+                    <div className='center font-bold w-full flex-col'>
+                        <h1 className='ml-5'>Congratulations you have set up your profile successfully..</h1>
+                        <br />
+                        <h1 className='ml-5'>Please Wait while we redirect you to your Chat page..</h1>
+           
+                    </div>
+                </div>
+                </div>
+        }
+        {
+            !loading &&
             <div className="w-screen h-screen center overflow-hidden  bg-[url('https://i.gifer.com/origin/85/856de846e59271089eca26c4260c9bdb_w200.webp')]   ">
                 <div className='bg-white  w-[80%] xl:w-[70%] h-[70%] rounded-xl center flex-col xl:grid xl:grid-cols-2 shadow-xl xl:gap-[150px]'>
                     <div className='xl:ml-[100px] hidden xl:flex  '>
@@ -61,7 +145,8 @@ const Profile = () => {
 
                             <Avatar className="h-32 w-32 md:w-48 md:h-48 rounded-full overflow-hidden">
                                 {
-                                    image ? <AvatarImage src={image} alt="profile"
+                                    
+                                    divImage ? <AvatarImage src={divImage} alt="profile"
                                         className="object-cover w-full h-full bg-black"
                                     /> : <div className={`uppercase h-32 w-32 md:w-48 md:h-48 text-5xl border-[1px] flex items-center justify-center rounded-full
                                  ${getColor(selectedColor)}`}
@@ -73,7 +158,7 @@ const Profile = () => {
                             {
                                 hovered &&
                                 <div
-
+                                    onClick={image ? handleDeleteImage : handleInputFileClick}
                                     className="absolute  inset-0 flex items-center justify-center bg-black/50 rounded-full h-32 w-32 cursor-pointer ring-fuchsia-50 md:h-48 md:w-48 ">
                                     {
                                         image ? <FaTrash className='text-3xl text-white cursor-pointer' /> : <FaPlus className='text-3xl text-white cursor-pointer ' />
@@ -81,8 +166,10 @@ const Profile = () => {
                                 </div>
 
                             }
-                            <input type="file" ref={fileInputRef} className='hidden' 
-                             name="profile-image" accept='.svg,.jpg,.jpeg,.webp, .png' />
+                            <input
+                                onChange={handleImageChange}
+                                type="file" ref={fileInputRef} className='hidden'
+                                name="profile-image" accept='.svg,.jpg,.jpeg,.webp, .png' />
                         </div>
                         <div className='flex w-full gap-5 center mt-5 mb-10'>
                             {
@@ -94,11 +181,13 @@ const Profile = () => {
                         </div>
                         <div>
                             <Input
+                                value={firstName}
                                 onChange={(e) => setFirstName(e.target.value)}
                                 placeholder="First Name" type="text" className="rounded-full border-none shadow-lg w-[300px]" />
                         </div>
                         <div>
                             <Input
+                                value={lastName}
                                 onChange={(e) => setLastName(e.target.value)}
                                 placeholder="Last Name" type="text" className="rounded-full border-none shadow-lg w-[300px] mt-5" />
                         </div>
@@ -110,6 +199,7 @@ const Profile = () => {
                     </div>
                 </div>
             </div>
+        }
         </>
     );
 };

@@ -22,7 +22,7 @@ const profileSchema = new Schema(
             type: String,
             required: false
         },
-        Image: {
+        image: {
             type: String,
             required:false
         }, 
