@@ -18,10 +18,11 @@ app.use(cookieParser())
 
 // import routes
 import profileRoutes from "./routes/Profile.route.js";
-
+import contactRoutes from "./routes/Contacts.route.js";
 
 //route declaration
 app.use("/api/chatz/profiles",profileRoutes);
+app.use("/api/chatz/contacts",contactRoutes);
 
 
 export {app};

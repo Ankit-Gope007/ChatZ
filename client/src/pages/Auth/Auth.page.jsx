@@ -1,5 +1,5 @@
 import React,{useState} from 'react'
-import { Emoji } from '../image_src';
+import { Emoji } from '../../image_src';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -77,7 +77,7 @@ const Auth = () => {
     return (
         <>
             <div className="w-screen h-screen flex flex-row justify-center items-center overflow-hidden  bg-[url('https://i.gifer.com/origin/85/856de846e59271089eca26c4260c9bdb_w200.webp')]  " >
-                <div className='w-[70%] xl:w-[800px] xl:h-[450px] xl:grid xl:grid-cols-2 rounded-lg shadow-xl bg-white flex flex-col'>
+                <div className='w-[80%] xl:w-[800px] xl:h-[450px] xl:grid xl:grid-cols-2 rounded-lg shadow-xl bg-white flex flex-col'>
                     <div className='flex flex-col xl:gap-8'>
                         <div className='center mt-4'>
                             <h1 className='text-2xl md:text-3xl font-black'>Welcome To ChatZ</h1>

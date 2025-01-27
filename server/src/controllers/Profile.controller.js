@@ -93,6 +93,9 @@ export const login = asyncHandler(async (req, res) => {
         secure: true,
     };
 
+    console.log("Access Token :",accessToken);
+    console.log("Refersh Token :",refreshToken);
+
     return res
         .status(200)
         .cookie("accessToken", accessToken, options)
@@ -159,3 +162,33 @@ export const getProfile = asyncHandler(async (req, res) => {
             )
         )
 })
+
+export const logout = asyncHandler(async (req, res) => {
+    const profileId = req.profile._id;
+    // console.log("Profile ID :",profileId);
+    const profile = await Profile.findByIdAndUpdate(
+        profileId,
+        {
+            $set: {
+                refreshToken:undefined
+            }
+        },
+        {
+            new:true
+        }
+    )
+    if (!profile) {
+        throw new ApiError(404, "Profile not found")
+    }
+
+    const options = {
+        httpOnly:true,
+        secure:true,
+    }
+
+    return res
+    .status(200)
+    .clearCookie("accessToken",options)
+    .clearCookie("refreshToken",options)
+    .json(new ApiResponse(200 , {} , "User Logged Out"))
+});
